@@ -1,15 +1,13 @@
 import socket
 import select
 import threading
-
+import json
 
 def handle_client(client_socket):
     print("正在连接")
     try:
         # 连接到目标服务器
         with socket.create_connection((TARGET_HOST, TARGET_PORT)) as target_socket:
-            message = f"{IP}:{port}".encode('utf-8')
-            client_socket.sendall(message)
             # 使用 select 来监听两个 socket 的可读性
             inputs = [client_socket, target_socket]
             while inputs:
@@ -51,10 +49,22 @@ def TCPlink():
             # 为每个客户端连接创建一个新线程
             client_thread = threading.Thread(target=handle_client, args=(client_socket,))
             client_thread.start()
-#客户端的配置应该与服务器相反
+# 服务器应该生成的Json格式
+#config = {
+#    "user_local_IP": "127.0.0.1",                            # 客户端的换回接口(你爱连啥都可以)
+#    "user_local_port": "46666",                              # 客户端的转发端口(你进游戏要用的)
+#    "server_IPv6": "240e:3b6:30f3:eea0:7686:4d3b:3f3c:405",  # 服务器的IP
+#    "server_port": "43325",                                  # 服务器的转发端口
+#    "game_port": "64871"}                                    # 游戏的端口
+#    with open('conf.json', 'w') as f:
+#        json.dump(config, f, indent=4)
+# 客户端的配置应该与服务器相反
+
 if __name__ == "__main__":
-    IP = '127.0.0.1'
-    port = 46666
-    TARGET_HOST = '::'
-    TARGET_PORT = 43325  # 服务器的转发
+    with open('conf.json', 'r', encoding='utf-8') as file:
+        data = json.load(file)
+        IP=data['user_local_IP']
+        port = int(data['user_local_port'])
+        TARGET_HOST = data['server_IPv6']
+        TARGET_PORT = int(data['server_port'])
     TCPlink()
